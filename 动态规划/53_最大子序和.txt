@@ -1,0 +1,96 @@
+53_最大子序和.txt
+
+:Author: kalipy
+:Email: kalipy@debian
+:Date: 2020-09-27 17:44
+
+给定一个整数数组 nums ，找到一个具有最大和的连续子数组（子数组最少包含一个元素），返回其最大和。
+
+示例:
+    输入: [-2,1,-3,4,-1,2,1,-5,4]
+    输出: 6
+    解释: 连续子数组 [4,-1,2,1] 的和最大，为 6。
+
+
+我的思考：
+动态规划(节省空间版)：
+    class Solution {
+        //动态规划(节省空间版)：
+        public int maxSubArray(int[] nums) {
+            int max = Integer.MIN_VALUE;
+            //int max = 0;//记得用Integer.MIN_VALUE，至于为什么，你试下，看看报错案例，你一定会理解的
+            int res = 0;
+            for (int i = 0; i < nums.length; i++) {
+                //resi+1 = Math.max(nums[i], nums[i]+resi)数学公式的代码表示
+                res = Math.max(nums[i], nums[i]+res);
+                if (res > max)
+                    max = res;
+            }
+            return max;
+        }
+    }
+
+参考答案的解：
+动态规划：
+    public int maxSubArray(int[] nums) {
+        int max = Integer.MIN_VALUE;
+        int[] dp = new int[nums.length+1];
+        for (int i = 1; i <= nums.length; i++) {
+            dp[i] += Math.max(0,dp[i-1]) + nums[i-1];
+            if(dp[i] > max) max = dp[i];
+        }
+        return max;
+    }
+
+
+1.根据动态规划思想写出dp[i]:
+dp[i]定义：
+    以第i个数结尾的[连续子数组的最大和]
+
+       |      |          |        |          |            |          |              |
+       |   3  |   -1     |   2    |   -6     |   100      |   1      |   -200       |
+resx = (3,3+0),(-1,-1+3@),(2,2+2@),(-6,-6+4@),(100,100-2@),(1,1+100@),(-200,-200+101@)    //说明：(xx,xx+yy)表示Math.max(xx,xx+yy)
+ /\                                                                                         
+ ||     ||        ||        ||        ||          ||         ||            ||
+ ||     \/        \/        \/        \/          \/         \/            \/             //带@号的数值都是来源于前一个带*号的数值
+ \/     3*        2*        4*       -2*          100*       101*         -99
+dp[i]
+
+2.找规律：
+    1.不难发现，resx = max(nums[i], nums[i]+xx)
+
+    2.思考xx怎么得来：
+        不难发现，resx中的每后一个res,都是由钱一个res和其它东西运算得来，即：
+        带@号的数值都是来源于前一个带*号的数值
+        
+    3.不妨大胆猜想：
+        1式..............res    =max{nums[i],nums[i]+res }
+                            i+1     {                   i}
+        
+        2式..............res    =max{nums[i],nums[i]+res }
+
+    4.其实，1公式与2公式本质是一样的，1公式是数学表示，2公式是代码表示，显然我们写代码选择公式2
+
+    5.对照步骤1中resx的第一项(3,3+0),可确定res的初始值应为0，所以定义变量res=0
+
+    6.由于resx中每次的值都会被后一次的覆盖，且我们最终是要求resx中的最大值，不妨定义一变量max=无穷小，每计算出一个resx，就
+    与max比较，并把二者中大的给max,最后for循环后返回return max即可。
+
+综上：
+动态规划(节省空间版)：
+    class Solution {
+        //动态规划(节省空间版)：
+        public int maxSubArray(int[] nums) {
+            int max = Integer.MIN_VALUE;
+            //int max = 0;//记得用Integer.MIN_VALUE，至于为什么，你试下，看看报错案例，你一定会理解的
+            int res = 0;
+            for (int i = 0; i < nums.length; i++) {
+                //1式..............res    =max{nums[i],nums[i]+res }
+                //                    i+1     {                   i}
+                res = Math.max(nums[i], nums[i]+res);//1式中数学公式的代码表示
+                if (res > max)
+                    max = res;
+            }
+            return max;
+        }
+    }
