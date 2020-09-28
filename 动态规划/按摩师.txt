@@ -1,0 +1,168 @@
+按摩师.txt
+
+:Author: kalipy
+:Email: kalipy@debian
+:Date: 2020-09-27 23:27
+
+题目：
+一个有名的按摩师会收到源源不断的预约请求，每个预约都可以选择接或不接。在每次预约服务之间要有休息时间，因此她不能接受相邻的预约。给定一个预约请求序列，替按摩师找到最优的预约集合（总预约时间最长），返回总的分钟数。
+
+注意：本题相对原题稍作改动
+
+示例 1：
+
+输入： [1,2,3,1]
+输出： 4
+解释： 选择 1 号预约和 3 号预约，总时长 = 1 + 3 = 4。
+
+示例 2：
+
+输入： [2,7,9,3,1]
+输出： 12
+解释： 选择 1 号预约、 3 号预约和 5 号预约，总时长 = 2 + 9 + 1 = 12。
+
+示例 3：
+
+输入： [2,1,4,5,3,1,1,3]
+输出： 12
+解释： 选择 1 号预约、 3 号预约、 5 号预约和 8 号预约，总时长 = 2 + 4 + 3 + 3 = 12。
+
+
+参考答案：
+class Solution {
+    public int massage(int[] nums) {
+        int n = nums.length;
+        if (n == 0) {
+            return 0;
+        }
+        if (n == 1) {
+            return nums[0];
+        }
+        int[] dp = new int[n];
+        dp[0] = nums[0];
+        dp[1] = Math.max(nums[0], nums[1]);
+        for (int i = 2; i < n; i++) {
+            dp[i] = Math.max(dp[i - 1], dp[i - 2] + nums[i]);
+        }
+        return dp[n - 1];
+    }
+}
+
+
+//节省空间的动态规划：
+class Solution {
+    public int massage(int[] nums) {
+        int a = 0, b = 0;
+        for (int i = 0; i < nums.length; i++) {
+            int c = Math.max(b, a + nums[i]);
+            a = b;
+            b = c;
+        }
+        return b;
+    }
+}
+
+
+
+
+
+我的方法及思考：
+1.根据动态规划思想写出dp[i]:(说明，resx与dp[i]是完全一样的，resx下标也是从0开始，如res0=dp[0]=2)
+dp[i]定义：
+    以第i个数结尾的[连续子数组的最大和]
+
+       |      |         |         |          |          |
+       |   2  |   7     |   9     |   3      |   1      |
+resx = (0,2+0),(2#,7+0 ),(7#,9+2@),(11#,3+7@),(10#,1+11@)    //说明：(xx,xx+yy)表示Math.max(xx,xx+yy)
+ /\
+ ||     ||        ||        ||        ||        ||         
+ ||     \/        \/        \/        \/        \/           //带@号的数值都是来源于前一个带*号的数值
+ \/     2*        7*        11*       10*       12
+dp[i]
+
+2.找规律：
+    1.不难发现，resx = max(resx[i-1], nums[i]+resx[i-2])
+
+    2.思考上面关系式的由来：
+        带@号的数值都是来源于前二个带*号的数值
+        带#号的数值都是来源于前一个带*号的数值
+
+    3.不妨大胆猜想：
+        1式..............res    =max{res   ,nums[i+2]+res }
+                            i+2     {   i+1              i}
+
+        2式:
+            res0 = nums[0];
+            res1 = max(nums[0],nums[1]);
+            for (int i = 0; i < len; i++) {
+                res2 = max(res1, nums[i+2] + res0);
+                res0 = res1;
+                res1 = res2;
+            }
+            return res
+
+    4.其实，1公式与2公式本质是一样的，1公式是数学表示，2公式是代码表示，显然我们写代码选择公式2
+
+
+    5.步骤3中2式的由来：
+        由1式：
+        1式..............res    =max{res   ,nums[i+2]+res }
+                            i+2     {   i+1              i}
+
+        把i=0,1,3分别代入1式，得：
+        ——————————————————————————————————————————————————————
+   i=0 |res2 = (res1,nums[2]+res0) .......3式
+   i=1 |res3 = (res2,nums[3]+res1) .......4式
+   i=2 |res4 = (res3,nums[4]+res2)
+   i=n |.........................
+
+
+        res0与res1还不知道是什么，所以先我们来确定ta两的值，直接观察，自己算出:
+        {res0 = nums[0] .......5式
+        {res1 = max(nums[0],nums[1]) .......6式
+         
+
+    6.对比观察3式和4式中变化了的部分，其中：
+        3式中的res1变为4式中的res2 .......7式
+        3式中的res0变为4式中的res1 ......8式
+        3式中的nums[2]变为4式中的nums[3] ........9式
+
+        因此，纯数学公式的1式可由这样变为能运行的2式那样的代码，即：
+            res0 = 2;//对应5式
+            res1 = max(nums[0],nums[1]);//对应6式
+            for (int i = 0; i < len; i++) {
+                res2 = max(res1, nums[i+2] + res0);//for里的i++对应9式
+                res0 = res1;//对应8式
+                res1 = res2;//对应7式
+            }
+            return res
+
+
+综上，我的代码为：
+    //节省空间的动态规划：
+    class Solution {
+        public int massage(int[] nums) {
+
+            int n = nums.length;
+            if (n == 0) {
+            return 0;
+            }
+            if (n == 1) {
+            return nums[0];
+            }
+            if (n == 2) {
+            return Math.max(nums[0],nums[1]);
+            }
+
+            int res0 = nums[0];
+            int res1 = Math.max(nums[0],nums[1]);
+            int res2 = 0;
+            for (int i = 0; i < nums.length-2; i++) {
+                res2 = Math.max(res1, nums[i+2] + res0);
+                res0 = res1;
+                res1 = res2;
+            }
+            return res2;
+        }
+    }
+
