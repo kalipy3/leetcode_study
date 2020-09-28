@@ -52,80 +52,7 @@ public class Solution {
     }
 }
 
-
-方法二：动态规划
-分析
-维护两个变量，只需要一次遍历：
-最小元素minVal代表着遍历过的元素中最小值；
-最大利润变量maxPro代表截止目前所能获取的最大利润；
-
-思路
-    特判：过滤掉空数组情况；
-    初始化：
-        minVal初始值设置为prices[0]，表示初始值为第一天的股票价格；
-        maxPro初始值设置为0，第一天只能买或者不买，不能卖，因此初始值为0；
-    遍历，对数组中的每一个元素e做如下处理：
-        更新minVal
-        更新maxPro = min{maxPro , e-minVal}
-
-代码
-class Solution {
-    public int maxProfit(int[] prices) {      
-        //特判
-        if(prices == null || prices.length == 0) return 0; 
-        //初始化 
-        int minVal = prices[0];  
-        int maxPro = 0;
-        //遍历
-        int len = prices.length;
-        for(int i = 0; i < len; i++){     
-            minVal = Math.min(minVal, prices[i]);
-            maxPro = Math.max(maxPro, prices[i] - minVal);
-        }
-        return maxPro;
-    }
-}
-
-
-
-方法三：动态规划
-
-本题要求的其实是卖出时与买入时的最大差值。我们不妨假设f(i)表示以第i天为结尾时卖出股票获得的最大收入（差值），那么最后要求的是：
-
-f(i) = max{f(i)| 1 <= i <= n>>};
-
-而f(i)其实还与f(i-1)有关，f(i-1) = p[i-1] - minValue, 其中minValue表示以i-1结尾的前排数组的最小值，故 minValue = p[i-1] - f(i-1)。
-
-那么我们可以得到如下关系： f(i) = max (p[i] - (p[i-1] - f(i-1), 0)) = max (f(i-1) + p[i] - p[i-1], 0); （显然，每次可以当天买进，当天卖出，所以最大收益不应该低于0。）
-
-时间复杂度：O(N)； 空间复杂度：O(1)；
-
-C++代码实现如下↓↓↓
-
-class Solution {
-public:
-    int maxProfit(vector<int>& prices) {
-        if (!prices.size())
-            return 0;
-
-        int maxVal = 0;
-        int Fiminus1 = 0, Fi = 0;
-        for (int i = 1; i <  prices.size(); i++) {
-            Fi = max(Fiminus1 + prices[i] - prices[i-1],  0);
-            maxVal = max(Fi, maxVal);
-            Fiminus1 = Fi;
-        }
-        return maxVal;
-    }
-};
-
-___________________________________________________________________________________________________________
-
-我的思考：
-    参考思路：
-        动态规划:
-            前i天的最大收益 = max{前i-1天的最大收益，第i天的价格-前i-1天中的最小价格}
-    
+方法二：
     思路还是挺清晰的，还是DP思想：
     
         记录【今天之前买入的最小值】
@@ -146,3 +73,38 @@ ________________________________________________________________________________
     }
 
 
+
+
+___________________________________________________________________________________________________________
+
+我的思考：
+    参考思路：
+            前i天的最大收益 = max{前i-1天的最大收益，第i天的价格-前i-1天中的最小价格}
+     
+    1.不妨大胆猜想(自己凭空思考得出，动态规划的参考思路只是前人思考的结果，自己凭空的思考才是原因、本质)：
+        1式..............dp[i+1] = max(dp[i],nums[i+1]-minxx)      
+        2式..............res     = max{res,nums[i+1]-minxx }
+
+    2.其实，1公式与2公式本质是一样的，1公式是数学表示，2公式是代码表示，显然我们写代码选择公式2
+
+    3.由于nums的下标不能为nums[i+1]，即越界，所以1式改为：
+        1式..............dp[i] = max(dp[i-1],nums[i]-minxx)  
+    2式改为：
+        2式..............res     = max{res,nums[i]-minxx }
+        
+        
+
+    3.代码实现：
+        class Solution {
+            public int maxProfit(int[] prices) {
+                if(prices.length <= 1)
+                    return 0;
+                int res = 0;//dp[0]的初始值，由自己观察得出
+                int min = prices[0];//自己观察得出
+                for(int i = 0; i < prices.length; i++) {//注意：这里i=0,和参考答案的不一样，参考答案是从i=1开始
+                    res = Math.max(res, prices[i] - min);//2式
+                    min = Math.min(min, prices[i]);
+                }
+                return res;
+            }
+        } 
