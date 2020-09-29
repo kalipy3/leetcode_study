@@ -1,0 +1,160 @@
+474_一和零.txt
+
+:Author: kalipy
+:Email: kalipy@debian
+:Date: 2020-09-29 14:16
+
+题目：
+在计算机界中，我们总是追求用有限的资源获取最大的收益。
+
+现在，假设你分别支配着 m 个 0 和 n 个 1。另外，还有一个仅包含 0 和 1 字符串的数组。
+
+你的任务是使用给定的 m 个 0 和 n 个 1 ，找到能拼出存在于数组中的字符串的最大数量。每个 0 和 1 至多被使用一次。
+
+
+
+示例 1:
+
+输入: strs = ["10", "0001", "111001", "1", "0"], m = 5, n = 3
+输出: 4
+解释: 总共 4 个字符串可以通过 5 个 0 和 3 个 1 拼出，即 "10","0001","1","0" 。
+
+示例 2:
+
+输入: strs = ["10", "0", "1"], m = 1, n = 1
+输出: 2
+解释: 你可以拼出 "10"，但之后就没有剩余数字了。更好的选择是拼出 "0" 和 "1" 。
+
+
+
+提示：
+
+    1 <= strs.length <= 600
+    1 <= strs[i].length <= 100
+    strs[i] 仅由 '0' 和 '1' 组成
+    1 <= m, n <= 100
+
+来源：力扣（LeetCode）
+链接：https://leetcode-cn.com/problems/ones-and-zeroes
+著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。
+
+
+
+参考答案：(建议直接看方法二，因为方法一dp[k][i][j]中的k一看就知道可以去掉，因为我们只是要最后的dp结果，k对结果无关紧要)
+方法1:朴素版DP
+定义状态
+
+int[][][] dp = new int[len + 1][m + 1][n + 1];
+//len是字符数组的个数，m相当于背包容量0的个数，n相当于背包容量1的个数
+//要求的是dp[k][m][n]，即第k个字符strs[k-1]，一路走来，m个0，和n个1全部消耗掉，能拼出的字符串的数量，即个数
+
+dp[k][i][j]表示遍历到第k−1个字符的时候，使用i个0，j个1的时候，能够拼出的字符串的数量，即个数
+转移方程
+
+dp[k][i][j]={1+dp[k−1][i−cost_zero[k]][j−cost_one[k]] i>=cost_zero[k] and j>=cost_one[k]}
+            {dp[k−1][i][j]                                                              }
+    选str[k-1]这个字符时
+    不选str[k-1]这个字符时
+
+其中cost_zero[k] 和 cost_one[k],是到达第k−1个字符串的时候，这个字符串中0和1的数量，因为数据的下标索引小于0是无意义的
+边界
+
+每个维度+1，第0个字符是空字符串
+
+    public int findMaxForm(String[] strs, int m, int n) {
+        int len = strs.length;
+        int[][][] dp = new int[len + 1][m + 1][n + 1];
+        for (int k = 1; k < len + 1; ++k) {
+            int[] counter = counter(strs[k - 1]);
+            for (int i = 0; i < m + 1; ++i) {
+                for (int j = 0; j < n + 1; ++j) {
+                    if (i >= counter[0] && j >= counter[1]) {
+                        dp[k][i][j] = Math.max(dp[k][i][j],
+                                dp[k - 1][i - counter[0]][j - counter[1]] + 1);
+                    }
+                    dp[k][i][j] = Math.max(dp[k][i][j], dp[k - 1][i][j]);
+                }
+            }
+        }
+        return dp[len][m][n];
+    }
+
+    /**
+     * 计算str字符串中的 0和1的个数， counter[0] 是 "0"的个数，counter[1]是"1"的个数
+     *
+     * @param str
+     * @return
+     */
+    public int[] counter(String str) {
+        int[] counter = new int[2];
+        for (char c : str.toCharArray()) counter[c - '0']++;
+        return counter;
+    }
+
+方法2:空间压缩DP
+
+    动态规划的几大要素：状态，选择以及边界条件
+
+参数定义：
+
+    N件物品
+    V背包的总容量
+    Ci放入第i件物品耗费的费用
+    Wi放入第i件物品得到的价值
+
+定义状态
+
+F[i,v]表示前i件物品恰好放入一个容量为v的背包可以获得的最大价值，而转移方程应为是：F[i,v]=max(F[i−1,v],F[i−1,v−Ci]+Wi)
+    解释：将第i件物品放入容量为v的背包中，只需要基于i−1件物品的基础上做第i件物品的放与不放的问题
+        不放入第i件物品，获得的最大价值是F[i−1,v]
+        放入第i件物品，获得的最大价值是F[i−1,v−Ci]+Wi,因为第i件物品已经放进去背包了，留给前i−1件物品的背包容量只有v−Ci,而通过放入第i件物品，获取的价值是Wi
+边界条件
+
+    dp[0][0]表示当选择是0个物品时，在没有物品，背包体积为0时，不装任何东西的时候dp[0][0]=0
+    F[i−1,v−Ci]其中v>=Ci，不然为负数，没有意义
+
+核心代码
+
+dp[N+1][V+1]
+dp[0][0...V]=0
+dp[0...N][0]=0
+for i in range(1,N+1)
+	for j in range(1,V+1)
+    	dp[i][j]=max(dp[i-1][j],dp[i-1][j-v[i]]+w[i])
+
+    上面是01背包的模型
+
+定义状态
+
+dp[i][j] 表示遍历到第k个字符的时候，使用i个0，j个1的时候，能够拼出的字符串的数量，即个数
+
+    public int findMaxForm(String[] strs, int m, int n) {
+        int len = strs.length;
+        int[][] dp = new int[m + 1][n + 1];
+        for (String str : strs) {
+            int[] counter = counter(str);
+            for (int i = m; i >= counter[0]; i--) {
+                for (int j = n; j >= counter[1]; j--) {
+                    dp[i][j] = Math.max(dp[i][j], dp[i - counter[0]][j - counter[1]] + 1);
+                }
+            }
+        }
+        return dp[m][n];
+    }
+
+    /**
+     * 计算str字符串中的 0和1的个数， counter[0] 是 "0"的个数，counter[1]是"1"的个数
+     *
+     * @param str
+     * @return
+     */
+    public int[] counter(String str) {
+        int[] counter = new int[2];
+        for (char c : str.toCharArray()) counter[c - '0']++;
+        return counter;
+    }
+
+作者：a-fei-8
+链接：https://leetcode-cn.com/problems/ones-and-zeroes/solution/01bei-bao-wen-ti-zhi-yi-he-ling-by-a-fei-8/
+来源：力扣（LeetCode）
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。

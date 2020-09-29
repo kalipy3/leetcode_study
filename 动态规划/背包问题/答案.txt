@@ -1,0 +1,102 @@
+答案.txt
+
+:Author: kalipy
+:Email: kalipy@debian
+:Date: 2020-09-29 15:27
+
+ 参数定义：
+
+    N件物品
+    V背包的总容量
+    Ci放入第i件物品耗费的费用
+    Wi放入第i件物品得到的价值
+
+定义状态
+
+F[i,v]表示前i件物品恰好放入一个容量为v的背包可以获得的最大价值，而转移方程应为是：F[i,v]=max(F[i−1,v],F[i−1,v−Ci]+Wi)
+    解释：将第i件物品放入容量为v的背包中，只需要基于i−1件物品的基础上做第i件物品的放与不放的问题
+        不放入第i件物品，获得的最大价值是F[i−1,v]
+        放入第i件物品，获得的最大价值是F[i−1,v−Ci]+Wi,因为第i件物品已经放进去背包了，留给前i−1件物品的背包容量只有v−Ci,而通过放入第i件物品，获取的价值是Wi
+
+边界条件
+
+    dp[0][0]表示当选择是0个物品时，在没有物品，背包体积为0时，不装任何东西的时候dp[0][0]=0
+    F[i−1,v−Ci]其中v>=Ci，不然为负数，没有意义
+
+核心代码
+
+dp[N+1][V+1]
+dp[0][0...V]=0
+dp[0...N][0]=0
+for i in range(1,N+1)
+	for j in range(1,V+1)
+    	dp[i][j]=max(dp[i-1][j],dp[i-1][j-v[i]]+w[i])
+
+Main的输入
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        int N = scanner.nextInt();//物品的件数N
+        int V = scanner.nextInt();//背包的容量V
+        int[] v = new int[N + 1];//长度为N的数组，第i个元素表示第i件物品的体积
+        int[] w = new int[N + 1];//长度为N的数组，第i个元素表示第i件物品的价值
+        for (int i = 1; i <= N; i++) {//N行 每行两个数，空格分开，v[i]表示是第i个物品的体积，w[i]是第i个物品的价值
+            v[i] = scanner.nextInt();
+            w[i] = scanner.nextInt();
+        }
+        scanner.close();
+        System.out.println(zeroOnePackExecutor1st(N, V, v, w));
+//        System.out.println(zeroOnePackExecutor2nd(N, V, v, w));
+
+    }
+
+方法1：DP二维版
+
+    dp[i][j]表示的是选择前i个物品，背包容量为j的情况下，背包中物品的最大价值
+        当不选择当前的第i件物品时，dp[i][j]=dp[i−1][j]
+        当选择当前的第i件物品时,dp[i][j]=dp[i−1][j−v[i]]+w[i],当前第i件物品的价值w[i]+前i−1件物品刨去w[i]后的最大价值dp[i−1][j−v[i]],要求j>=v[i],负数没有意义
+        取上述两个值的max
+
+    dp[0][0]表示的是当选择第0个物品的时候，即在没有物品时，背包体积为0时，不装任何东西的时候,dp[0][0]=0
+    代码如下：
+
+        public static int zeroOnePackExecutor1st(int N, int V, int[] v, int[] w) {
+            int[][] dp = new int[N + 1][V + 1];
+            dp[0][0] = 0;
+            for (int i = 1; i <= N; i++) {
+                for (int j = 1; j <= V; j++) {
+                    dp[i][j] = dp[i - 1][j];
+                    if (j >= v[i]) dp[i][j] = Math.max(dp[i - 1][j], dp[i - 1][j - v[i]] + w[i]);
+                }
+            }
+            return dp[N][V];
+        }
+
+很容易能得到如下的一张二维的DP
+    见：
+        答案.png
+        
+___________________________________________________________________________________________________________________    
+      
+我的思考：
+方法二：
+//动态规划空间优化
+public static int zeroOnePackExecutor2nd(int N, int V, int[] v, int[] w) {
+        int[] dp = new int[V + 1];
+        dp[0] = 0;
+        for (int i = 1; i <= N; i++) {
+            for (int j = V; j >= v[i]; j--) {
+                dp[j] = Math.max(dp[j], dp[j - v[i]] + w[i]);
+            }
+        }
+        return dp[V];
+    }
+
+
+问题：
+    1.为什么可以空间优化？
+        自己按未优化空间的算法走一遍，完成答案.png表格的填写，你会发现，从上到下的每一行的填写，只是覆盖前一行的一个过程
+        所以我们可以只用一行的表格即一个一维数组就可以了。
+
+    2.为什么dp[j]要逆序填充?
+        如果你自己把二维表格填了一遍，那么我想你一定会知道为什么的
