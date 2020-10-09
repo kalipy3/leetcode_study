@@ -46,6 +46,8 @@
 参考答案(请直接看官方答案):
 https://leetcode-cn.com/problems/coin-change/solution/322-ling-qian-dui-huan-by-leetcode-solution/
 
+https://leetcode-cn.com/problems/coin-change/solution/dong-tai-gui-hua-tao-lu-xiang-jie-by-wei-lai-bu-ke/
+
 关于自上而下动态递归的注释:
 public class Solution {
   public int coinChange(int[] coins, int amount) {
