@@ -40,6 +40,23 @@
 参考答案：
 https://leetcode-cn.com/problems/new-21-game/solution/huan-you-bi-zhe-geng-jian-dan-de-ti-jie-ma-tian-ge/
 
+java版：
+class Solution {
+    public double new21Game(int N, int K, int W) {
+        double[] dp = new double[K + W];
+        double sum = 0.0;
+        for (int i = K; i < K + W; i++) {
+            dp[i] = (i <= N ? 1.0 : 0.0);
+            sum += dp[i];
+        }
+        for (int i = K-1; i > -1; i--) {
+            dp[i] = sum / W;
+            sum = sum - dp[i + W] + dp[i];
+        }
+        return dp[0];
+    }
+}
+
 重要解释：
 其实是要反着求dp[x]，假如你手上牌面是x，你已经知道下一张摸到1后你的胜率是dp[x+1]，下一张摸到2后的胜率是dp[x+2]，而摸到1，2，。。。W的概率都相等，那么是不是可以说你牌面为x时，你的胜率是1/w * (dp[x+1]+dp[x+2]+dp[x+3]...+dp[x+w])，最后反推到dp[0]
 
