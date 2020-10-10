@@ -1,0 +1,93 @@
+718_最长重复子数组.txt
+
+:Author: kalipy
+:Email: kalipy@debian
+:Date: 2020-10-10 16:11
+
+题目：
+给两个整数数组 A 和 B ，返回两个数组中公共的、长度最长的子数组的长度。
+
+
+
+示例：
+
+输入：
+A: [1,2,3,2,1]
+B: [3,2,1,4,7]
+输出：3
+解释：
+长度最长的公共子数组是 [3, 2, 1] 。
+
+来源：力扣（LeetCode）
+链接：https://leetcode-cn.com/problems/maximum-length-of-repeated-subarray
+著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。
+
+参考答案：
+https://leetcode-cn.com/problems/maximum-length-of-repeated-subarray/solution/javadong-tai-gui-hua-jie-jue-qi-shi-jiu-shi-zui-ch/
+
+
+
+方法三：
+暴力法（超时）:
+
+暴力法的代码很优雅，但它超时了，时间复杂度 O(n3)O(n^3)O(n3)
+const findLength = (A, B) => {
+    const m = A.length;
+    const n = B.length;
+    let res = 0;
+    for (let i = 0; i < m; i++) {
+        for (let j = 0; j < n; j++) {
+            if (A[i] == B[j]) { // 遇到相同项
+                let subLen = 1;   // 公共子序列长度至少为1
+                while (
+                        A[i + subLen] == B[j + subLen] && // 新的一项也相同
+                        i + subLen < m &&                 // 并且没有越界
+                        j + subLen < n                    // 并且没有越界
+                      ) {
+                    subLen++; // 公共子序列长度每次增加 1，考察新的一项
+                }
+                res = Math.max(subLen, res);
+            }
+        }
+    }
+    return res;
+};
+
+
+窗口的代码：
+const findLength = (A, B) => {
+    const m = A.length;
+    const n = B.length;
+    let res = 0;
+    // A固定，移动B
+    for (let i = 0; i <= n; i++) {
+        const len = Math.min(m, n - i); // 当前窗口的长度
+        const maxLen = getMaxLen(A, B, 0, i, len); //窗口左端是A[0]，窗口左端是B[i]
+        res = Math.max(res, maxLen);
+    }
+    // B固定，移动A
+    for (let i = 0; i <= m; i++) {
+        const len = Math.min(n, m - i); // 当前窗口的长度
+        const maxLen = getMaxLen(A, B, i, 0, len);//窗口左端是A[i]，窗口左端是B[0]
+        res = Math.max(res, maxLen);
+    }
+    return res;
+};
+// 窗口左端对应A的位置是aStart，窗口左端对应B的位置是bStart
+function getMaxLen(A, B, aStart, bStart, windowLen) {
+    let res = 0;
+    let subLen = 0;
+    for (let i = 0; i < windowLen; i++) { // 遍历的范围是窗口的长度
+        if (
+                A[aStart + i] !== undefined &&    // 没有越界
+                B[bStart + i] !== undefined &&    // 没有越界
+                A[aStart + i] == B[bStart + i]    // 当前项相同
+           ) {
+            subLen++;                         // subLen累加1
+        } else {
+            subLen = 0;                       // 这个窗口有“杂质”，废了
+        }
+        res = Math.max(res, subLen);
+    }
+    return res;
+}
